@@ -1,7 +1,9 @@
 ;;;; 1-3
-;;;; P13
-;;;; Define a procedure that takes three numbers as arguments and returns the
-;;;; sum of the squares of the two larger numbers.
+;;;; 1-1-6
+;;;; 2022/03/12
+
+;;; Define a procedure that takes three numbers as arguments and returns the
+;;; sum of the squares of the two larger numbers.
 
 (define (biggest-of-three a b c)
   (cond ((and (>= a b) (>= a c)) a)

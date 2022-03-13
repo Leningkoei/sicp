@@ -1,13 +1,15 @@
 ;;;; 1-7
-;;;; P16
-;;;; The `good-enough?` test used in computing square roots will not be very
-;;;; effective for finding the square roots of very small numbers. Also, in real
-;;;; computers, arithmetic operations are almost always performed with limited
-;;;; precision. This makes our test inadequate for very large numbers. Explain
-;;;; these statements, with examples showing how the test fails for small and
-;;;; large numbers. An alternative strategy for implementing a square-root
-;;;; procedure that uses this kind of end test. Does this work better for small
-;;;; and large numbers?
+;;;; 1-1-7
+;;;; 2022/03/12
+
+;;; The `good-enough?` test used in computing square roots will not be very
+;;; effective for finding the square roots of very small numbers. Also, in real
+;;; computers, arithmetic operations are almost always performed with limited
+;;; precision. This makes our test inadequate for very large numbers. Explain
+;;; these statements, with examples showing how the test fails for small and
+;;; large numbers. An alternative strategy for implementing a square-root
+;;; procedure that uses this kind of end test. Does this work better for small
+;;; and large numbers?
 
 (define (good-enough? guess x)
   (< (abs (- (square guess x) x)) 0.0001))

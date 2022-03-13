@@ -1,8 +1,10 @@
 ;;;; 1-5
-;;;; P13
-;;;; Ben Bitdiddle has invented a test to determine whether the interpreter he
-;;;; is faced with is using applicative-order evaluation or normal-order
-;;;; evaluation. He defines the following two procedures:
+;;;; 1-1-6
+;;;; 2022/03/12
+
+;;; Ben Bitdiddle has invented a test to determine whether the interpreter he
+;;; is faced with is using applicative-order evaluation or normal-order
+;;; evaluation. He defines the following two procedures:
 
 (define (p)
   (p))
@@ -12,6 +14,6 @@
     0
     y))
 
-;;;; Applicative-order Evaluation: Evaluated when it is a parameter.
-;;;; Normal-order      Evaluation: Lazy mode. Possible evaluating one more times.
+;;; Applicative-order Evaluation: Evaluated when it is a parameter.
+;;; Normal-order      Evaluation: Lazy mode. Possible evaluating one more times.
 
