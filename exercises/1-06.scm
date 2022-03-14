@@ -1,4 +1,4 @@
-;;;; 1-6
+;;;; 1-06
 ;;;; 1-1-7
 
 ;;; Alyssa P. Hacker doesn't see why `if` needs to be provided as a special

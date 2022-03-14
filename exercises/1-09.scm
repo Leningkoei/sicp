@@ -1,4 +1,4 @@
-;;;; 1-9
+;;;; 1-09
 ;;;; 1-2-1
 ;;;; Each of the following two procedures defines a method for adding two
 ;;;; positive integers in terms of the procedures `inc`, which increments its
