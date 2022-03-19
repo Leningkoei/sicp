@@ -1,4 +1,4 @@
-;;;; 1-2-4
+;;;; 1-2-4: Exponentiation
 ;;;; 2022/03/15
 
 ;;; Consider the problem of computing the exponential of a given number. We

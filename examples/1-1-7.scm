@@ -1,7 +1,5 @@
-;;;; 1-1-7
+;;;; 1-1-7: Square Roots by Newton's Method
 ;;;; 2022/03/12
-
-;;; Square Roots by Newton's Method
 
 (define (my-sqrt x)
   (sqrt-iter 1.0 x))
