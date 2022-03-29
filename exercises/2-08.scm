@@ -1,4 +1,4 @@
-;;;; 2-8
+;;;; 2-08
 ;;;; 2-1-4
 ;;;; 2022/03/29
 
@@ -6,7 +6,7 @@
 ;;; intervals may be computed. Define a corresponding subtraction procedure,
 ;;; called `sub-interval`.
 
-(load "2-7.scm")
+(load "2-07.scm")
 
 (define sub-interval (lambda (x y)
   (define y.opposite (make-interval (- (upper-bound y))

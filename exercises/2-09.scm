@@ -1,4 +1,4 @@
-;;;; 2-9
+;;;; 2-09
 ;;;; 2-1-4
 ;;;; 2022/03/29
 
@@ -15,7 +15,7 @@
 ;;; intervals being added (or subtracted). Give examples to show that this is
 ;;; not true for multiplication or division.
 
-(load "2-8.scm")
+(load "2-08.scm")
 
 (define width (lambda (interval)
   (define lower (lower-bound interval))
