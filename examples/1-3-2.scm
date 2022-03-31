@@ -1,4 +1,4 @@
-;;;; 1-3-2 Constructing Procedures Using Lambda
+;;;; 1-3-2: Constructing Procedures Using Lambda
 ;;;; 2022/03/21
 
 (define reload (lambda ()

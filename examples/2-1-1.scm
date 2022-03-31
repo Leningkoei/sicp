@@ -1,4 +1,4 @@
-;;;; 2-1-1 Arithmetic Operations for Rational Numbers
+;;;; 2-1-1: Arithmetic Operations for Rational Numbers
 ;;;; 2022/03/26
 
 ;;; (make-rat <n> <d>): returns the rational number whose numerator is the

@@ -1,4 +1,4 @@
-;;;; 1-3-3 Procedures as General Methods
+;;;; 1-3-3: Procedures as General Methods
 ;;;; 2022/03/21
 
 ;;; Finding roots of equations by the half-interval method

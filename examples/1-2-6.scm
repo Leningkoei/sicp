@@ -1,4 +1,4 @@
-;;;; 1-2-6 Test for Promality
+;;;; 1-2-6: Test for Promality
 ;;;; 2022/03/17
 
 ;;; Searching for divisors
