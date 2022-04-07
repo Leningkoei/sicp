@@ -1,5 +1,7 @@
 ;;;; 2-2-3: Sequences as Conventional Interfaces
 
+(define (reload)
+  (load "2-2-3.scm"))
 (load "print.scm")
 
 (define sum-odd-squares (lambda (tree)
@@ -36,25 +38,42 @@
 
 ;;; Sequence Operations
 
-(define Sequence.filter:Function (lambda (predicate:Function this:Sequence)
+(define Sequence.filter:Sequence (lambda (predicate:Function this:Sequence)
   (cond ((null? this:Sequence) '())
         ((predicate:Function (car this:Sequence))
           (cons (car this:Sequence)
-                (Sequence.filter:Function predicate:Function
+                (Sequence.filter:Sequence predicate:Function
                                           (cdr this:Sequence))))
         (else (filter predicate:Function (cdr this:Sequence))))))
-(define Sequence.accumulate:Function
+(define Sequence.accumulate:<operation:Function>
   (lambda (operation:Function initial this:Sequence)
     (if (null? this:Sequence)
       initial
       (operation:Function (car this:Sequence)
-                          (Sequence.accumulate:Function operation:Function
-                                                        initial
-                                                        (cdr this:Sequence))))))
+                          (Sequence.accumulate:<operation:Function>
+                            operation:Function
+                            initial
+                            (cdr this:Sequence))))))
+(define enumerate-interval:Sequence  (lambda (low:Interval high:Interval)
+  (if (> low:Interval high:Interval)
+    '()
+    (cons low:Interval
+          (enumerate-interval:Sequence (1+ low:Interval) high:Interval)))))
+(define Tree.enumerate:Sequence (lambda (this:Tree)
+  (cond ((null? this:Tree) '())
+        ((not (pair? this:Tree)) (list this:Tree))
+        (else (append (Tree.enumerate:Sequence (car this:Tree))
+                      (Tree.enumerate:Sequence (cdr this:Tree)))))))
+(define Tree.sum-odd-square:Number (lambda (this:Tree)
+  (Sequence.accumulate:<operation:Function>
+    + 0 (map square (Sequence.filter:Sequence
+                      odd? (Tree.enumerate:Sequence this:Tree))))))
 
 (define (test)
   (print (sum-odd-squares (list 0 1 2 3)))
   (print (even-fibs 3))
-  (print (Sequence.filter:Function odd? (list 0 1 2 3)))
-  (print (Sequence.accumulate:Function + 0 (list 0 1 2 3))))
+  (print (Sequence.filter:Sequence odd? (list 0 1 2 3)))
+  (print (Sequence.accumulate:<operation:Function> + 0 (list 0 1 2 3)))
+  (print (enumerate-interval:Sequence 2 7))
+  (print (Tree.enumerate:Sequence (list 1 (list 2 (list 3 4)) 5))))
 
