@@ -1,8 +1,9 @@
 ;;;; 2-2-3: Sequences as Conventional Interfaces
+;;;; 2022/04/06
 
+(load "../stdp.scm")
 (define (reload)
   (load "2-2-3.scm"))
-(load "print.scm")
 
 (define sum-odd-squares (lambda (tree)
   (cond ((null? tree) 0)
@@ -69,11 +70,39 @@
     + 0 (map square (Sequence.filter:Sequence
                       odd? (Tree.enumerate:Sequence this:Tree))))))
 
+;;; Nested Mappings
+
+(define flatmap (lambda (proc seq)
+  (accumulate append nil (map proc seq))))
+(define prime-sum? (lambda (pair)
+  (prime? (+ (car pair) (cadr pair)))))
+(define make-pair-sum (lambda (pair)
+  (list (car pair) (cadr pair) (+ (car pair) (cadr pair)))))
+(define prime-sum-pairs (lambda (n)
+  (map make-pair-sum
+       (filter prime-sum?
+               (flatmap (lambda (i)
+                          (map (lambda (j) (list i j))
+                          (enumerate-interval:Sequence 1 (-1+ i))))
+                        (enumerate-interval:Sequence 1 n))))))
+(define permutations (lambda (s)
+  (if (null? s)
+    (list nil)
+    (flatmap (lambda (x)
+               (map (lambda (p) (cons x p))
+                    (permutations (remove (lambda (y) (= x y)) s))))
+             s))))
+
 (define (test)
   (print (sum-odd-squares (list 0 1 2 3)))
   (print (even-fibs 3))
   (print (Sequence.filter:Sequence odd? (list 0 1 2 3)))
   (print (Sequence.accumulate:<operation:Function> + 0 (list 0 1 2 3)))
   (print (enumerate-interval:Sequence 2 7))
-  (print (Tree.enumerate:Sequence (list 1 (list 2 (list 3 4)) 5))))
+  (print (Tree.enumerate:Sequence (list 1 (list 2 (list 3 4)) 5)))
+  (print (flatmap (lambda (i) (map (lambda (j) (list i j))
+                                   (enumerate-interval:Sequence 1 (-1+ i))))
+                  (list 1 2 3 4 5 6)))
+  (print (prime-sum-pairs 6))
+  (print (permutations (list 0 1 2 3 4))))
 
