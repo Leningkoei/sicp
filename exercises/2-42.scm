@@ -49,10 +49,11 @@
 
 (define empty-board nil)
 (define safe? (lambda (k positions)
+  (print k positions)
   #t))
 (define adjoin-position (lambda (new-row k rest-of-queens)
-  ))
+  (cons (list new-row k) rest-of-queens)))
 
 (define (test)
-  (queens 4))
+  (print (queens 3)))
 

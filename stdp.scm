@@ -22,11 +22,11 @@
   prime?)))
 
 ;; `low` is open and `high` is close.
-(define enumerate-integer (lambda (low:Integer high:Integer)
+(define enumerate-interval (lambda (low:Integer high:Integer)
   (if (>= low:Integer high:Integer) '()
-    (cons low:Integer (enumerate-integer (1+ low:Integer) high:Integer)))))
+    (cons low:Integer (enumerate-interval (1+ low:Integer) high:Integer)))))
 (define enumerate-integer:Sequence<Integer> enumerate-integer)
 
-(define flatmap (lambda (procdure:type=> sequence:Sequence<type>)
+(define flatmap (lambda (procedure:type=> sequence:Sequence<type>)
   (accumulate append '() (map procedure:type=> sequence:Sequence<type>))))
 
