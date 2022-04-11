@@ -25,7 +25,7 @@
 (define enumerate-interval (lambda (low:Integer high:Integer)
   (if (>= low:Integer high:Integer) '()
     (cons low:Integer (enumerate-interval (1+ low:Integer) high:Integer)))))
-(define enumerate-integer:Sequence<Integer> enumerate-integer)
+(define enumerate-integer:Sequence<Integer> enumerate-interval)
 
 (define flatmap (lambda (procedure:type=> sequence:Sequence<type>)
   (accumulate append '() (map procedure:type=> sequence:Sequence<type>))))
