@@ -19,3 +19,21 @@
     guess
     (sqrt-iter (improve guess x) x)))              ; Evaluated Before Predicate. So Never Stop.
 
+;; predicate: Boolean,
+;; then-clause: Function<type>,
+;; else-clause: Function<type>
+;; type
+(define new-if-kai (lambda (predicate then-clause else-clause)
+  (cond (predicate (then-clause))
+        (else (else-clause)))))
+(define sqrt-iter-kai (lambda (guess x)
+  (new-if-kai (good-enough? guess x) (lambda () guess)
+    (lambda () (sqrt-iter-kai (improve guess x) x)))))
+
+(define good-enough? (lambda (guess x)
+  (< (abs (- (square guess) x)) 0.001)))
+(define improve (lambda (guess x)
+  (average guess (/ x guess))))
+(define average (lambda (x y)
+  (/ (+ x y) 2)))
+
