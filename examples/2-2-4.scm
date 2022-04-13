@@ -69,7 +69,7 @@
   (lambda (v)
               ; origin
     (add-vect (origin-frame frame)
-              (add-vert (scale-vect (xcor-vect v) (edge1-frame frame))
+              (add-vect (scale-vect (xcor-vect v) (edge1-frame frame))
                         (scale-vect (ycor-vect v) (edge2-frame frame)))))))
 
 ;; Frame
