@@ -163,3 +163,21 @@
 (define end-segment (lambda (this)
   (cdr this)))
 
+;;; Transforming and combining painters
+
+(define transform-painter (lambda (painter origin corner1 corner2)
+  (lambda (frame)
+    (define m (frame-coord-map frame))
+    (painter
+      (make-frame
+        new-origin
+        (sub-vect (m corner1) new-origin)
+        (sub-vect (m corner2) new-origin))))))
+
+(define flip-vert (lambda (painter)
+  (transform-painter
+    painter
+    (make-vect 0 1)
+    (make-vect 1 1)
+    (make-vett 0 0))))
+
