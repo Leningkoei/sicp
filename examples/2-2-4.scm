@@ -179,5 +179,19 @@
     painter
     (make-vect 0 1)
     (make-vect 1 1)
-    (make-vett 0 0))))
-
+    (make-vect 0 0))))
+(define (shrink-to-upper-right painter)
+  (transform-painter painter
+                     (make-vect 0.5 0.5)
+                     (make-vect 1   0.5)
+                     (make-vect 0.5 1)))
+(define (rotate90 painter)
+  (transform-painter painter
+                     (make-vect 1 0)
+                     (make-vect 1 1)
+                     (make-vect 0 0)))
+(define (squash-inwards painter)
+  (transform-painter painter
+                     (make-vect 0    0)
+                     (make-vect 0.65 0.35)
+                     (make-vect 0.35 0.65)))

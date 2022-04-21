@@ -1,7 +1,114 @@
-(load "vector.lisp")
-(load "segment.lisp")
-(load "frame.lisp")
+;;;; 2-2-4
+;;;; 2022/04/21
 
-(defun reload ()
-  (load "2-2-4.lisp"))
+(defun make-vector (IxI IyI)
+  "Double -> Double -> Vector"
+  (cons IxI IyI))
+(defun vector-IxI (vector)
+  (car vector))
+(defun vector-IyI (vector)
+  (cdr vector))
+(defmacro vector-expand (lst &body body)
+  "lst: ((vector vector-IxI-name vector-IyI-name)*)"
+  (let ((lst-kai (map 'list
+                      (lambda (element)
+                        ;; element: (vector vector-IxI-name vector-IyI-name)
+                        (let ((vector (car element))
+                              (vector-IxI-name (cadr element))
+                              (vector-IyI-name (caddr element)))
+                          `((,vector-IxI-name (vector-IxI ,vector))
+                            (,vector-IyI-name (vector-IyI ,vector)))))
+                      lst)))
+    ;; lst-kai: ((,vector-IxI-name (vector-IxI ,vector))
+    ;;           (,vector-IyI-name (vector-IyI ,vector)))*
+    (let ((lst-kai-ni (reduce 'append lst-kai)))
+      ;; lst-kai-ni: (,vector-IxI-name (vector-IxI ,vector)
+      ;;              ,vector-IyI-name (vector-IyI ,vector))*
+      `(let (,@lst-kai-ni) ,@body))))
+(defun vector-add (vector1 vector2)
+  "Vector -> Vector -> Vector"
+  (vector-expand ((vector1 vector1-IxI vector1-IyI)
+                  (vector2 vector2-IxI vector2-IyI))
+                 (make-vector (+ vector1-IxI vector2-IxI)
+                              (+ vector1-IyI vector2-IyI))))
+(defun vector-sub (vector1 vector2)
+  "Vector -> Vector -> Vector"
+  (vector-expand ((vector1 vector1-IxI vector1-IyI)
+                  (vector2 vector2-IxI vector2-IyI))
+                 (make-vector (- vector1-IxI vector2-IxI)
+                              (- vector1-IyI vector2-IyI))))
+(defun vector-scale (number vector)
+  "Number -> Vector -> Vector"
+  (vector-expand ((vector vector-IxI vector-IyI))
+                 (make-vector (* number vector-IxI)
+                              (* number vector-IyI))))
 
+(defun make-segment (start end)
+  "Vector -> Vector -> Segment"
+  (cons start end))
+(defun segment-start (segment)
+  (car segment))
+(defun segment-end (segment)
+  (cdr segment))
+
+(defun make-frame (origin edge1 edge2)
+  "Vector -> Vector -> Vector -> Frame"
+  (cons origin (cons edge1 edge2)))
+(defun frame-origin (frame)
+  (car frame))
+(defun frame-edge1 (frame)
+  (cadr frame))
+(defun frame-edge2 (frame)
+  (cddr frame))
+(defun frame-coord-map (frame)
+  (lambda (v)
+    (vector-add
+     (frame-origin frame)
+     (vector-add (vector-scale (vector-IxI v) (frame-edge1 frame))
+                 (vector-scale (vector-IyI v) (frame-edge2 frame))))))
+
+(defun transform-painter (painter origin corner1 corner2)
+  (lambda (frame)
+    (let ((m (frame-coord-map frame)))
+      (let ((new-origin (m origin)))
+        (painter (make-frame new-origin
+                             (sub-vector (m corner1) new-origin)
+                             (sub-vector (m corner2) new-origin)))))))
+
+(defun beside (painter1 painter2)
+  (let ((split-point (make-vect 0.5 0)))
+    (let ((paint-left  (transform-painter painter1
+                                          (make-vert 0 0)
+                                          split-point
+                                          (make-vect 0 1)))
+          (paint-right (transform-painter painter2
+                                          (split-point)
+                                          (make-vect 1 0)
+                                          (make-vect 0.5 1))))
+      (lambda (frame) (funcall paint-left frame) (funcall paint-right frame)))))
+
+(defun wave2 ()
+  (beside wave (flip-vert wave)))
+(defun flipped-pairs (painter)
+  (let ((painter2 (beside painter (flip-vert painter))))
+    (below painter2 painter2)))
+(defun wave4 ()
+  (flipped-pairs wave))
+
+(defun up-split     (painter n)
+  (if (= n 0) painter
+    (let ((smaller (up-split    painter (- n 1))))
+      (below painter (beside smaller smaller)))))
+(defun right-split  (painter n)
+  (if (= n 0) painter
+    (let ((smaller (right-split painter (- n 1))))
+      (beside painter (below smaller smaller)))))
+(defun corner-split (painter n)
+  (if (= n 0) painter
+    (let ((up     (up-split     painter (- n 1)))
+          (right  (right-split  painter (- n 1)))
+          (corner (corner-split painter (- n 1))))
+      (let ((top-left     (beside up up))
+            (bottom-right (below right right)))
+        (beside (below painter top-left)
+                (below bottom-right corner))))))

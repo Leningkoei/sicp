@@ -10,10 +10,10 @@
 ;;          (,vector-IyI-name (vector-IyI ,vector)))
 ;;      ,@body))
 (defmacro vector-expand (lst &body body)
-  "lst: ((vector vector-IxI-name vector-IyI-name)*)"
+  "lst: (vector vector-IxI-name vector-IyI-name)*"
   (let ((lst-kai (map 'list
                       (lambda (element)
-                        ;; element: (vector vector-IxI-name vector-IyI-name)
+                        "element: (vector vector-IxI-name vector-IyI-name"
                         (let ((vector (car element))
                               (vector-IxI-name (cadr element))
                               (vector-IyI-name (caddr element)))
@@ -32,19 +32,18 @@
   (vector-expand ((vector1 vector1-IxI vector1-IyI)
                   (vector2 vector2-IxI vector2-IyI))
                  (make-vector (+ vector1-IxI vector2-IxI)
-                              (+ vector1-IyI vector2-IyI))))
+                              (+ vector1-IyI vector2-IyI)))))
 (defun vector-sub (vector1 vector2)
   "Vector -> Vector -> Vector"
   (vector-expand ((vector1 vector1-IxI vector1-IyI)
                   (vector2 vector2-IxI vector2-IyI))
                  (make-vector (- vector1-IxI vector2-IxI)
-                              (- vector1-IyI vector2-IyI))))
+                              (- vector1-IyI vector2-IyI)))))
 (defun vector-scale (number vector)
   "Number -> Vector -> Vector"
   (vector-expand ((vector vector-IxI vector-IyI))
                  (make-vector (* number vector-IxI)
                               (* number vector-IyI))))
-
 (defun test ()
   (let ((vector1 (make-vector 1 1))
         (vector2 (make-vector 2 2)))
