@@ -19,11 +19,11 @@
                           `((,vector-IxI-name (vector-IxI ,vector))
                             (,vector-IyI-name (vector-IyI ,vector)))))
                       lst)))
-    ;; lst-kai: ((,vector-IxI-name (vector-IxI ,vector))
-    ;;           (,vector-IyI-name (vector-IyI ,vector)))*
+    ;; lst-kai: (`((,vector-IxI-name (vector-IxI ,vector))
+    ;;             (,vector-IyI-name (vector-IyI ,vector)))*)
     (let ((lst-kai-ni (reduce 'append lst-kai)))
-      ;; lst-kai-ni: (,vector-IxI-name (vector-IxI ,vector)
-      ;;              ,vector-IyI-name (vector-IyI ,vector))*
+      ;; lst-kai-ni: `((,vector-IxI-name (vector-IxI ,vector))*
+      ;;               (,vector-IyI-name (vector-IyI ,vector))*)
       `(let (,@lst-kai-ni) ,@body))))
 (defun vector-add (vector1 vector2)
   "Vector -> Vector -> Vector"
