@@ -62,30 +62,52 @@
   (cddr frame))
 (defun frame-coord-map (frame)
   (lambda (v)
-    (vector-add
-     (frame-origin frame)
-     (vector-add (vector-scale (vector-IxI v) (frame-edge1 frame))
-                 (vector-scale (vector-IyI v) (frame-edge2 frame))))))
-
+    (vector-add (frame-origin frame)
+                (vector-add (vector-scale (vector-IxI v)
+                                          (frame-edge1 frame))
+                            (vector-scale (vector-IyI v)
+                                          (frame-edge2 frame))))))
+(defun make-painter (segments)
+  "List<Segment> -> Painter, Painter: Frame -> nil, draw something inside the frame."
+  (lambda (frame)
+    (map nil
+         (lambda (segment)
+           (draw-line (funcall (frame-coord-map frame)
+                               (segment-start segment))
+                      (funcall (frame-coord-map frame)
+                               (segment-end segment))))
+         segments)))
 (defun transform-painter (painter origin corner1 corner2)
+  "Painter -> Vector -> Vector -> Vector -> Function"
   (lambda (frame)
     (let ((m (frame-coord-map frame)))
-      (let ((new-origin (m origin)))
-        (painter (make-frame new-origin
-                             (sub-vector (m corner1) new-origin)
-                             (sub-vector (m corner2) new-origin)))))))
+      (let ((new-origin (funcall m origin))
+            (new-edge1 (vector-sub (funcall m corner1) new-origin))
+            (new-edge2 (vector-sub (funcall m corner2) new-origin)))
+        (painter (make-frame new-origin new-edge1 new-edge2))))))
 
 (defun beside (painter1 painter2)
   (let ((split-point (make-vect 0.5 0)))
     (let ((paint-left  (transform-painter painter1
-                                          (make-vert 0 0)
+                                          (make-vector 0 0)
                                           split-point
-                                          (make-vect 0 1)))
+                                          (make-vector 0 1)))
           (paint-right (transform-painter painter2
-                                          (split-point)
-                                          (make-vect 1 0)
-                                          (make-vect 0.5 1))))
+                                          split-point
+                                          (make-vector 1 0)
+                                          (make-vector 0.5 1))))
       (lambda (frame) (funcall paint-left frame) (funcall paint-right frame)))))
+(defun below  (painter1 painter2)
+  (let ((split-point (make-vect 0 0.5)))
+    (let ((paint-bottom (transform-painter painter1
+                                           (make-vector 0 0)
+                                           (make-vector 1 0)
+                                           split-point))
+          (paint-top    (transform-painter painter2
+                                           split-point
+                                           (make-vector 1 0)
+                                           (make-vector 0 0.5))))
+      (lambda (frame) (funcall paint-bottom frame) (funcall paint-top frame)))))
 
 (defun wave2 ()
   (beside wave (flip-vert wave)))
