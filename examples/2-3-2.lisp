@@ -55,6 +55,9 @@
         ((=number? augend 0) addend)
         ((and (number? addend) (number? augend)) (+ addend augend))
         (t (list '+ addend augend))))
+(defun make-sum-kai (addend &rest augends)
+  ""
+  (reduce 'make-sum (cons addend augends)))
 
 (defun product? (e)
   "Is `e` a product?"
@@ -74,9 +77,12 @@
   (cond ((or (=number? multiplier 0) (=number? multiplicand 0)) 0)
         ((=number? multiplier 1) multiplicand)
         ((=number? multiplicand 1) multiplier)
-        ((and (number? multiplier) (number? multiplicand) (* multiplier
-                                                             multiplicand)))
+        ((and (number? multiplier) (number? multiplicand))
+         (* multiplier multiplicand))
         (t (list '* multiplier multiplicand))))
+(defun make-product-kai (multiplier &rest multiplicands)
+  ""
+  (reduce 'make-product (cons multiplier multiplicands)))
 
 (defun ^ (base exponent)
   (expt base exponent))
