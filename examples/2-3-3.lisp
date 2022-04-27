@@ -5,12 +5,12 @@
 
 (in-package common-lisp-user)
 (defpackage unordered-set
-  (:use :common-lisp)
-  (:export :element-of-set?
-           :adjoin-set
-           :intersection-set
-           :union-set
-           :test))
+  (:use    common-lisp)
+  (:export element-of-set?
+           adjoin-set
+           intersection-set
+           union-set
+           test))
 (in-package unordered-set)
 
 (defun element-of-set? (x set)
@@ -50,12 +50,12 @@
 
 (in-package common-lisp-user)
 (defpackage ordered-set
-  (:use :common-lisp)
-  (:export :element-of-set?
-           :adjoin-set
-           :intersection-set
-           :union-set
-           :test))
+  (:use    common-lisp)
+  (:export element-of-set?
+           adjoin-set
+           intersection-set
+           union-set
+           test))
 (in-package ordered-set)
 
 (defun element-of-set? (x set)
@@ -100,6 +100,37 @@
     nil))
 
 ;;; Sets as binary trees
+
+(in-package common-lisp-user)
+(defpackage binary-tree-set
+  (:use    common-lisp)
+  (:export test))
+(in-package binary-tree-set)
+
+(defun make-tree (entry left-branch right-branch)
+  (list entry left-branch right-branch))
+(defun tree-entry (tree)
+  (car tree))
+(defun tree-left-branch (tree)
+  (cadr tree))
+(defun tree-right-branch (tree)
+  (caddr tree))
+(defun element-of-set? (x set)
+  "Determines whether a given element is a member of a set."
+  (cond ((null set) nil)
+        ((= x (tree-entry set)) t)
+        ((< x (tree-entry set)) (element-of-set? x (tree-left-branch set)))
+        ((> x (tree-entry set)) (element-of-set? x (tree-right-branch set)))))
+(defun adjoin-set (x set)
+  (if (null set) (make-tree x nil nil)
+    (let ((entry (tree-entry set)))
+      (cond ((= x entry) (make-tree x nil nil))
+            ((< x entry) (make-tree entry
+                                    (adjoin-set x (tree-left-branch set))
+                                    (tree-right-branch set)))
+            ((> x entry) (make-tree entry
+                                    (tree-left-branch set)
+                                    (adjoin-set x (tree-right-branch set))))))))
 
 (in-package common-lisp-user)
 (defun test ()
