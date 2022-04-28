@@ -19,6 +19,12 @@
 ;;; a. Do the two procedures produce the same result for every tree? If not,
 ;;; how do the results differ? What lists do the two procedures produce for the
 ;;; trees in figure 2.16?
+;;; Same. In-order.
+
 ;;; b. Do the two procedures have the same order of growth in the number of
 ;;; steps required to convert a balanced tree with `n` elements to a list? If
 ;;; not, which one grows more slowly?
+;;; tree->list-1: T(n) = 2 * T(n / 2) + O(n / 2)
+;;; tree->list-2: T(n) = 2 * T(n / 2) + O(1)
+
+;;; Answer from http://community.schemewiki.org/?sicp-ex-2.63
