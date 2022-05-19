@@ -1,4 +1,4 @@
-;;;; 3-1-1
+;;;; 3-1-1: Local State Variables
 ;;;; 2022/05/18
 
 ((lambda (balance)
