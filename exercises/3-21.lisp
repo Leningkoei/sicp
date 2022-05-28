@@ -25,3 +25,45 @@
 ;;; Explain what Eva Lu is talking about. In particular, show why Ben's examples
 ;;; produce the printed results that they do. Define a procedure `print-queue`
 ;;; that takes a queue as input and prints the sequence of items in the queue.
+
+(defun front-ptr (queue)
+  (car queue))
+(defun rear-ptr (queue)
+  (cdr queue))
+(defun set-front-ptr! (queue item)
+  (rplaca queue item))
+(defun set-rear-ptr! (queue item)
+  (rplacd queue item))
+(defun make-queue ()
+  (cons nil nil))
+(defun empty-queue? (queue)
+  (null (front-ptr queue)))
+
+(defun insert-queue! (queue item)
+  (let ((new-pair (cons item nil)))
+    (if (empty-queue? queue)
+        (progn (set-front-ptr! queue new-pair)
+               (set-rear-ptr! queue new-pair))
+        (progn (rplacd (rear-ptr queue) new-pair)
+               (set-rear-ptr! queue new-pair)
+               queue))))
+(defun delete-queue! (queue)
+  (if (empty-queue? queue)
+      (error (format nil "DELETE! called with an empty queue ~A" queue))
+      (progn (set-front-ptr! queue (cdr (front-ptr queue))) queue)))
+
+(defun print-queue (queue)
+  "What is cycle?"
+  (format t "QUEUE: ")
+  (map 'list
+       (lambda (param) (format t "~A " param))
+       (front-ptr queue)))
+
+(defun test ()
+  (let ((queue (make-queue)))
+    (insert-queue! queue 1)
+    (insert-queue! queue 2)
+    (insert-queue! queue 3)
+    (insert-queue! queue 4)
+    (print-queue queue)
+    nil))
