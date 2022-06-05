@@ -20,7 +20,7 @@
 (defun half-adder (a b s c)
   (let ((d (make-wire))
         (e (make-wire)))
-    (or-get a b d)
+    ( or-gate a b d)
     (and-gate a b c)
     (inverter c e)
     (and-gate d e s)
@@ -48,6 +48,7 @@
 ;;    on the wire changes value. Such procedures are the vehicles by which
 ;;    changes in the signal value on the wire are communicated to other wires.
 
+(in-package :common-lisp-user)
 (defpackage implement
   (:use :common-lisp)
   (:export inverter))
@@ -106,3 +107,95 @@
     (add-action! a1 (lambda () (or-action-procedure)))
     (add-action! a2 (lambda () (or-action-procedure)))
     'ok))
+
+;;; Representing wires
+
+(in-package :common-lisp-user)
+(defpackage represent
+  (:use :common-lisp)
+  (:export :todo))
+(in-package :represent)
+
+(defun todo () "Do something, plz")
+
+(defun call-each (procedures)
+  "CALL-EACH
+  Calls each of the items in a list of no-argument procedure."
+  (if procedures
+      (progn (funcall (car procedures))
+             (call-each (cdr procedures)))
+      'done))
+(defun make-wire ()
+  (let ((signal-value 0) (action-procedures nil))
+    (flet ((set-my-signal! (new-value)
+             "SET-MY-SIGNAL!
+  Tests whether the new signal value changes the signal on the wire. If so, it
+  runs each of the action procedures, using the procedure `call-each`, which
+  calls each of the items in a list of no-argument procedure."
+             (if (not (= signal-value new-value))
+                 (progn (setf signal-value new-value)
+                        (call-each action-procedures))
+                 'done))
+           (accept-action-procedure! (procedure)
+             "ACCEPT-ACTION-PROCEDIRE
+  Adds the given procedure to list of procedures to be run, and then runs the
+  new procedure once. (See exercise 3.31.)"
+             (setf action-procedures (cons procedure action-procedures))
+             (funcall procedure)))
+      (let ((dispatch (lambda (operation)
+                        (cond ((equal operation 'get-signal) signal-value)
+                              ((equal operation 'set-signal!)
+                               (lambda (new-value) (set-my-signal! new-value)))
+                              ((equal operation 'add-actions!)
+                               (lambda (procedure)
+                                 (accept-action-procedure! procedure)))
+                              ('t (error (format nil
+                                                 "Unknown operation -- WIRE ~A"
+                                                 operation)))))))
+        dispatch))))
+
+(defun get-signal (wire)
+  (funcall wire 'get-signal))
+(defun set-signal! (wire new-value)
+  (funcall (funcall wire 'set-signal!) new-value))
+(defun add-action! (wire action-procedure)
+  (funcall (funcall wire 'add-action!) action-procedure))
+
+(in-package common-lisp-user)
+(defpackage agenda
+  (:use :common-lisp)
+  (:export todo))
+
+(defun todo () "Do something, plz")
+
+(defun make-agenda ()
+  "MAKE-AGENDA
+  todo -> agenda
+  Returns a new empty agenda."
+  'todo)
+(defun empty-agenda? (agenda)
+  "EMPTY-AGENDA?
+  agenda -> boolean
+  Is true if the specified agenda is empty."
+  'todo)
+(defun first-agenda-item (agenda)
+  "FIRST-AGENDA-ITEM
+  agenda -> todo
+  Returns the first item on the agenda."
+  'todo)
+(defun remove-first-agenda-item! (agenda)
+  "REMOVE-FIRST-AGENDA-ITEM
+  agenda -> todo
+  Modifies the agenda by removing the first item."
+  'todo)
+(defun add-to-agenda! (agenda time action)
+  "ADD-TO-AGENDA!
+  agenda -> todo -> todo
+  Modifies the agenda by adding the given action procedure to be run at the
+  specified time."
+  'todo)
+(defun current-time (agenda)
+  "CURRENT-TIME
+  agenda -> todo
+  Returns the current simulation time."
+  'todo)
