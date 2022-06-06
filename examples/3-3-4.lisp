@@ -126,7 +126,8 @@
              (call-each (cdr procedures)))
       'done))
 (defun make-wire ()
-  (let ((signal-value 0) (action-procedures nil))
+  (let ((signal-value 0)
+        (action-procedures nil))
     (flet ((set-my-signal! (new-value)
              "SET-MY-SIGNAL!
   Tests whether the new signal value changes the signal on the wire. If so, it
@@ -170,7 +171,7 @@
 
 (defun make-agenda ()
   "MAKE-AGENDA
-  todo -> agenda
+  nil -> agenda
   Returns a new empty agenda."
   'todo)
 (defun empty-agenda? (agenda)
@@ -199,3 +200,36 @@
   agenda -> todo
   Returns the current simulation time."
   'todo)
+
+(defun after-delay (delay action)
+  (add-to-agenda! (+ delay (current-time the-agenda))
+                  action the-agenda))
+(defun propagate ()
+  "PROPAGATE
+  nil -> 'done
+  Operates on `the-agenda`, executing each procedure on the agenda in
+  sequence. In general, as the simulation runs, new items will be added to the
+  agenda, and `propagate` will continue the simulation as long as there are
+  items on the agenda."
+  (if (empty-agenda? the-agenda)
+      'done
+      (let ((first-item (first-agenda-item the-agenda)))
+        (first-item)
+        (remove-first-agenda-item! the-agenda)
+        (propagate))))
+
+;;; A sample simulation
+
+(defun probe (name wire)
+  (add-action! wire
+               (lambda ()
+                 (format t "~A ~A New-value = ~A"
+                         name (current-time the-agenda) (get-signal wire))
+                 (fresh-line))))
+
+(defparameter the-agenda (make-agenda))
+(defparameter inverter-delay 2)
+(defparameter and-gate-delay 3)
+(defparameter or-gate-delay 5)
+
+;;; Continue in 3-3-4-2.lisp
