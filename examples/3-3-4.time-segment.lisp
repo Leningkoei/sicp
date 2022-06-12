@@ -7,17 +7,16 @@
 
 (in-package :common-lisp-user)
 (defpackage :time-segment
-  (:use
-   :common-lisp)
-  (:export
-   :make
-   :ztime
-   :queue))
+  (:use common-lisp))
 (in-package :time-segment)
 
-(defun make (time queue)
+(defun make-time-segment (time queue)
   (cons time queue))
-(defun ztime (this)
+(defun time-segment-time (this)
   (car this))
-(defun queue (this)
+(defun time-segment-queue (this)
   (cdr this))
+
+(export 'make-time-segment)
+(export 'time-segment-time)
+(export 'time-segment-queue)

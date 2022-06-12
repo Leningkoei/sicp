@@ -1,17 +1,9 @@
 (in-package :common-lisp-user)
 (defpackage :queue
-  (:use
-   :common-lisp)
-  (:export
-   :make
-   :empty?
-   :body-current
-   :body-rest
-   :insert!
-   :delete!))
+  (:use :common-lisp))
 (in-package :queue)
 
-(defun make ()
+(defun make-queue ()
   (cons nil nil))
 (defun front-ptr (this)
   (car this))
@@ -21,27 +13,30 @@
   (rplaca this item))
 (defun set-rear-ptr! (this item)
   (rplacd this item))
-(defun empty? (this)
+(defun queue-empty? (this)
   (null (front-ptr this)))
-(defun front (this)
-  (if (empty? this)
-      (error (format nil "FRONT called with an empty queue ~A" this))
+(defun queue-front (this)
+  (if (queue-empty? this)
+      (error (format nil "FRONT called with an queue-empty? queue ~A" this))
       (car (front-ptr this))))
-(defun body-current (body)
-  (car body))
-(defun body-rest (body)
-  (cdr body))
-(defun insert! (this item)
+(defun queue-insert! (this item)
   (let ((new-pair (cons item nil)))
-    (if (empty? this)
+    (if (queue-empty? this)
         (progn (set-front-ptr! this new-pair)
                (set-rear-ptr! this new-pair)
                this)
         (progn (rplacd (rear-ptr this) new-pair)
                (set-rear-ptr! this new-pair)
                this))))
-(defun delete! (this)
-  (if (empty? this)
-      (error (format nil "DELETE! called with an empty queue ~A" this))
+(defun queue-delete! (this)
+  (if (queue-empty? this)
+      (error (format nil "QUEUE-DELETE! called with an queue-empty? queue ~A"
+                     this))
       (progn (set-front-ptr! this (cdr (front-ptr this)))
              this)))
+
+(export 'make-queue)
+(export 'queue-empty?)
+(export 'queue-front)
+(export 'queue-insert!)
+(export 'queue-delete!)
