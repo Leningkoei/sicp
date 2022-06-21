@@ -45,7 +45,11 @@
                (cond ((not (has-value? me))
                       (setf value new-value)
                       (setf informant setter)
-                      (for-each-except setter 'inform-about-value constraints))
+                      ;; (for-each-except setter 'inform-about-value constraints))
+                      (for-each-except setter
+                                       (lambda (constraint)
+                                         (inform-about-value constraint))
+                                       constraints))
                      ((not (= value new-value))
                       (error (format '() "Contradiction ~A"
                                      (list value new-value))))
@@ -155,7 +159,7 @@
 
 (defun probe (name connector)
   (labels ((print-probe (value)
-             (format 't "Probe: ~A = ~A" name value))
+             (format 't "Probe: ~A = ~A" name value) (fresh-line))
            (process-new-value ()
              (print-probe (get-value connector)))
            (process-forget-value ()
@@ -167,7 +171,7 @@
                     (process-forget-value))
                    ('t (error (format '() "Unknown request -- PROBE ~A"
                                       request))))))
-    (let ((me (lambda (request) (me request))))
+    (let ((me (lambda (me request) (declare (ignore me)) (me request))))
       (connect connector me)
       me)))
 
