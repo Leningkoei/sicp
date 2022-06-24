@@ -175,8 +175,9 @@
       (connect connector me)
       me)))
 
-;;; celsius fahrenheit converter
+;;; 
 
+;; celsius fahrenheit converter
 (defun celsius-fahrenheit-converter (c f)
   (let ((u (make-connector))
         (v (make-connector))
@@ -190,3 +191,21 @@
     (constant 5 x)
     (constant 32 y)
     'ok))
+
+;; averager
+(defun averager (a b c)
+  (let ((sum (make-connector))
+        (second (make-connector)))
+    (adder a b sum)
+    (multiplier second c sum)
+    (constant 2 second)))
+
+(defun test ()
+  (let ((a (make-connector))
+        (b (make-connector))
+        (c (make-connector)))
+    (averager a b c)
+    (probe "Average" c)
+    (set-value! a 1024'user)
+    (set-value! b 2048 'user)
+    'done))
