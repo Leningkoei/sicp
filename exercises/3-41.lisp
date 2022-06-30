@@ -26,7 +26,9 @@
                      ((equal m 'balance)
                       ;; Ben's
                       (protected (lambda () balance)))
-                     ('t (error "Unknown request -- MAKE-ACCOUNT ~A" m)))))
+                     ('t (error (format '()
+                                        "Unknown request -- MAKE-ACCOUNT ~A"
+                                        m))))))
         #'dispatch))))
 
 ;;; because allowing unserialized access to the bank balance can result in

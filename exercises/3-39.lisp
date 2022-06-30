@@ -27,3 +27,7 @@
 ;;  |   |   |
 ;;  C   B   B
 ;; 101 100 121
+
+;; rest answer from internet:
+;; A -> B -> x = 100
+;;      C ----------> x = 11
