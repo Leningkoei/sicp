@@ -1,4 +1,4 @@
-;;;; 2-4-3
+;;;; 2-4-3: Data-Directed Programming and Additivity
 ;;;; 2022/05/18 -- 2022/07/08
 
 (defun square (x)
@@ -100,3 +100,19 @@
   (funcall (get 'make-from-real-imag 'rectangular) x y))
 (defun make-from-reg-ang   (r a)
   (funcall (get 'make-from-reg-ang 'polar) r a))
+
+;;; Message passing
+
+(defparameter make-from-real-imag
+  (labels ((make-from-real-imag (x y)
+             (labels ((dispatch (operation)
+                        (cond ((equal operation 'real-part) x)
+                              ((equal operation 'imag-part) y)
+                              ((equal operation 'magnitude)
+                               (sqrt (+ (square x) (square y))))
+                              ((equal operation 'angle)
+                               (atan y x))
+                              ('t (error (format '() "Unknown operation --
+  MAKE-FROM-REAL-IMAG ~A" operation))))))
+               #'dispatch)))
+    #'make-from-real-imag))
