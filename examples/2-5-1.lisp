@@ -99,7 +99,5 @@
   (funcall (get 'make-from-mag-ang 'complex) r a))
 
 ;; (funcall (get 'make-from-real-imag 'complex) x y) ->
-;; (funcall #'(make-from-real-imag (x y)) x y) ->
-;; (make-from-real-imag x y) ->
-;; (funcall (get 'make-from-real-imag 'rectangular) x y) ->
-;; ...
+;; (funcall (lambda (x y) (tag (make-from-real-imag x y))) x y) ->
+;; (funcall (lambda (x y) (attach-tag 'complex (make-from-real-imag x y))) x y)
