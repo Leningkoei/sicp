@@ -55,3 +55,11 @@
   (flyspell-mode))
 (defun handle-prog-hook ()
   (flyspell-prog-mode))
+
+(defun slime-qlot-exec (directory)
+  (interactive (list (read-directory-name "Project directory: ")))
+  (slime-start :program "qlot"
+               :program-args '("exec" "ros" "-s" "." "run")
+               :directory directory
+               :name 'qlot
+               :env (list (concat "PATH=" (mapconcat 'identity exec-path ":")))))
