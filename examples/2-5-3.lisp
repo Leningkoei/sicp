@@ -1,6 +1,31 @@
 ;;;; 2-5-3
 ;;;; 2022/07/30
 
+(defun the-empty-termlist ()
+  "Returns an empty term list."
+  'todo)
+(defun adjoin-term (l1 l2)
+  "Adjoins a new term to a term list."
+  'todo)
+(defun empty-termlist? (termlist)
+  "Tells if a given term list is empty."
+  'todo)
+(defun first-term (termlist)
+  "Extracts the highest-order term from a term list."
+  'todo)
+(defun rest-term (termlist)
+  "Returns all but the highest-order term."
+  'todo)
+(defun make-term (order coefficient)
+  "Constructs a term with given order and coefficient."
+  'todo)
+(defun order (term)
+  "Returns order of the term."
+  'todo)
+(defun coeff (term)
+  "Returns coefficient of the term."
+  'todo)
+
 (defun add-terms (l1 l2)
   (cond ((empty-termlist? l1) l2)
         ((empty-termlist? l2) l1)
@@ -46,19 +71,19 @@
                   (equal v1 v2)))
            ;; representation of terms and term lists
            ;; (adjoin-terms
-           (add-ploy (p1 p2)
+           (add-poly (p1 p2)
              (if (same-variable? (variable p1) (variable p2))
-                 (make-ploy (variable p1)
+                 (make-poly (variable p1)
                             (add-terms (term-list p1) (term-list p2)))
                  (error (format '()
-                                "Polys not in same var -- ADD-PLOY ~A"
+                                "Polys not in same var -- ADD-POLY ~A"
                                 `(,p1 ,p2)))))
-           (mul-ploy (p1 p2)
+           (mul-poly (p1 p2)
              (if (same-variable? (variable p1) (variable p2))
-                 (make-ploy (variable p1)
+                 (make-poly (variable p1)
                             (mul-terms (term-list p1) (term-list p2)))
                  (error (format '()
-                                "Ploys not in same var -- MUL-PLOY ~A"
+                                "Polys not in same var -- MUL-POLY ~A"
                                 `(,p1 ,p2)))))
            ;; interface to rest of system
            (tag (p) (attach-tag 'polynomial p)))
