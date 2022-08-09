@@ -3,28 +3,30 @@
 
 (defun the-empty-termlist ()
   "Returns an empty term list."
-  'todo)
-(defun adjoin-term (l1 l2)
+  '())
+(defun adjoin-term (term term-list)
   "Adjoins a new term to a term list."
-  'todo)
-(defun empty-termlist? (termlist)
+  (if (= zero? (coeff term))
+      term-list
+      (cons term term-list)))
+(defun empty-termlist? (term-list)
   "Tells if a given term list is empty."
-  'todo)
-(defun first-term (termlist)
+  (null term-list))
+(defun first-term (term-list)
   "Extracts the highest-order term from a term list."
-  'todo)
-(defun rest-term (termlist)
+  (car term-list))
+(defun rest-term (term-list)
   "Returns all but the highest-order term."
-  'todo)
-(defun make-term (order coefficient)
+  (cdr term-list))
+(defun make-term (order coeff)
   "Constructs a term with given order and coefficient."
-  'todo)
+  `(,order ,coeff))
 (defun order (term)
   "Returns order of the term."
-  'todo)
+  (car  term))
 (defun coeff (term)
   "Returns coefficient of the term."
-  'todo)
+  (cadr term))
 
 (defun add-terms (l1 l2)
   (cond ((empty-termlist? l1) l2)
@@ -94,3 +96,6 @@
     (put 'make 'polynomial
          (lambda (variable term-list) (tag (make-poly))))
     'done))
+
+(defun make-polynomial (var terms)
+  (apply (get 'make 'polynomial) `(,var ,terms)))
