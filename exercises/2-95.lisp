@@ -36,48 +36,168 @@
 ;;; `pseudodivision` of `P` by `Q`. The remainder of the division is called the
 ;;; `pseudoremainder`.
 
+(defpackage term
+  (:use :common-lisp))
+(in-package :term)
+
 (defun make-term (order coefficient)
   `(term ,order ,coefficient))
+(defun term? (term?)
+  (eq term? 'term))
 (defun order (term)
   (cadr term))
 (defun coefficient (term)
   (caddr term))
+(defun add (augend addend)
+  (if (= (order augend) (order addend))
+      (make-term (order augend)
+                 (+ (coefficient augend) (coefficient addend)))
+      (error (format '() "Terms are not in same order -- ADD-TERM ~A"
+                     `(,augend ,addend)))))
+(defun negative (term)
+  (make-term (order term)
+             (- (coefficient term))))
+(defun mul (multiplicand multiplier)
+  (make-term (+ (order multiplicand) (order multiplier))
+             (* (coefficient multiplicand) (coefficient multiplier))))
 
-(defun make-empty-term-list ()
-  '())
-(defun empty-term-list? (term-list)
+(export 'make-term)
+(export 'term?)
+(export 'order)
+(export 'coefficient)
+(export 'add)
+(export 'mul)
+
+
+(defpackage term-list
+  (:use :common-lisp)
+  (:import-from :term :make-term)
+  (:import-from :term :term?)
+  (:import-from :term :order)
+  (:import-from :term :coefficient))
+(in-package :term-list)
+
+(defun make-term-list (&rest terms)
+  (reduce #'(lambda (pre-result term)
+              (if pre-result
+                  (term? term)
+                  pre-result))
+          `(() . ,terms))
+  `(,@terms))
+(defun empty? (term-list)
   (null term-list))
-(defun adjoin-term-list (term-list term)
-  (if (reduce #'(lambda (pre-result term-in-term-list)
-                  (if pre-result
-                      pre-result
-                      (= (order term-in-term-list) (order term))))
-              `(() . ,term-list))
-      ;; If there is term in term list with the same order with term.
-      ;; adjoin it.
-      (map 'list
-           #'(lambda (term-in-term-list)
-               (if (= (order term-in-term-list) (order term))
-                   (make-term (order term-in-term-list)
-                              (+ (coefficient term-in-term-list)
-                                 (coefficient term)))
-                   term-in-term-list))
-           term-list)
-      ;; push it into a right position.
-      (sort `(,term . ,term-list)
-            #'(lambda (term-a term-b)
-                (> (order term-a) (order term-b))))))
+(defun first-term (term-list)
+  (if (empty? term-list)
+      (error (format '() "Trying to get first term from a empty term list -- TERM-LIST:FIRST-TERM"))
+      (car term-list)))
+(defun remove-0-term (rest-term-list)
+  (if rest-term-list
+      (if (= (coefficient (car rest-term-list)) 0)
+          (remove-0-term (cdr rest-term-list))
+          `(,(car rest-term-list) .
+            ,(remove-0-term (cdr rest-term-list))))
+      '()))
+(defun adjoin-term (term-list term)
+  (remove-0-term
+   (if (reduce #'(lambda (pre-result term-in-term-list)
+                   (if pre-result
+                       pre-result
+                       (= (order term-in-term-list) (order term))))
+               `(() . ,term-list))
+       ;; If there is term in term list with the same order with term.
+       ;; Adjoin it.
+       (map 'list
+            #'(lambda (term-in-term-list)
+                (if (= (order term-in-term-list) (order term))
+                    (term:add term-in-term-list term)
+                    term-in-term-list))
+            term-list)
+       ;; Push it into a right position.
+       (sort `(,term . ,term-list)
+             #'(lambda (term-a term-b)
+                 (> (order term-a) (order term-b)))))))
+(defun add (augend addend)
+  (labels ((iterator (newest-augend rest-addend)
+             (if rest-addend
+                 (iterator (adjoin-term newest-augend (car rest-addend))
+                           (cdr rest-addend))
+                 newest-augend)))
+    (iterator augend addend)))
+(defun sub (subtraction subtract)
+  (add subtraction (map 'list #'term:negative subtract)))
+(defun mul (multiplicand multiplier)
+  (reduce #'add
+          (map 'list
+               #'(lambda (term-of-multiplier)
+                   (map 'list
+                        #'(lambda (term-of-multiplicand)
+                            (term:mul term-of-multiplicand term-of-multiplier))
+                        multiplicand))
+               multiplier)))
+(defun div (divident divisor)
+  ;; to test
+  (if (empty? divident)
+      `(,(make-term-list) 0)
+      (let ((divident-first-term (first-term divident))
+            ( divisor-first-term  (first-term divisor)))
+        (if (> (order divisor-first-term) (order divident-first-term))
+            `(,(make-term-list) ,divident)
+            (let* ((      quotient*-order (- (order divident) (order divisor)))
+                   (quotient*-coefficient (/ (coefficient divident)
+                                            (coefficient divisor)))
+                   (quotient* (make-term-list
+                               (make-term quotient*-order
+                                          quotient*-coefficient)))
+                   (substract (mul divisor quotient*))
+                   (remainder* (sub divident substract))
+                   (rest-result (div remainder* divisor)))
+              `(,(add quoitent* (car rest-result)) ,(cadr rest-result)))))))
+
+(export 'make-term-list)
+(export 'add)
+(export 'sub)
+(export 'mul)
+
+
+(defpackage polynomial
+  (:use :common-lisp))
+(in-package :polynomial)
 
 (defun make-polynomial (variable term-list)
   `(polynomial ,variable ,term-list))
-(defun variable (polynomial)
+(defun var (polynomial)
   (cadr polynomial))
 (defun term-list (polynomial)
   (caddr polynomial))
-
-(defun add-polynomial (p1 p2)
-  (if (variable= (variable p1) (variable p2))
-      (make-polynomial (variable p1) (add-terms (term-list p1) (term-list p2)))
+(defun var= (var1 var2)
+  (eq var1 var2))
+(defun add (augend addend)
+  (if (var= (var augend) (var addend))
+      (make-polynomial (var augend)
+                       (term-list:add (term-list augend) (term-list addend)))
       (error
-       (format '() "Polynomials are not in same variable -- ADD-POLYNOMIAL ~A"
-               `(,p1 ,p2)))))
+       (format '() "Polynomials are not in same variable -- POLYNOMIAL:ADD ~A"
+               `(,augend ,addend)))))
+(defun sub (subtraction subtract)
+  (if (var= (var subtraction) (var subtract))
+      (make-polynomial (var subtraction)
+                       (term-list:sub (term-list subtraction)
+                                      (term-list subtract)))
+      (error
+       (format '() "Polynomials are not in same variable -- POLYNOMIAL:SUB ~A"
+               `(,subtraction ,subtract)))))
+(defun mul (multiplicand multiplier)
+  (if (var= (var multiplicand) (var multiplier))
+      (make-polynomial (var multiplicand)
+                       (term-list:mul (term-list multiplicand)
+                                      (term-list multiplier)))
+      (error
+       (format '() "Polynomials are not in same variable -- POLYNOMIAL:MUL ~A"
+               `(,multiplicand ,multiplier)))))
+
+(export 'make-polynomial)
+(export 'var)
+(export 'term-list)
+(export 'var=)
+(export 'add)
+(export 'mul)
