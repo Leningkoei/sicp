@@ -43,7 +43,7 @@
 (defun make-term (order coefficient)
   `(term ,order ,coefficient))
 (defun term? (term?)
-  (eq term? 'term))
+  (eq (car term?) 'term))
 (defun order (term)
   (cadr term))
 (defun coefficient (term)
@@ -66,6 +66,7 @@
 (export 'order)
 (export 'coefficient)
 (export 'add)
+(export 'negative)
 (export 'mul)
 
 
@@ -77,13 +78,17 @@
   (:import-from :term :coefficient))
 (in-package :term-list)
 
+(shadow 'common-lisp:gcd)
+
 (defun make-term-list (&rest terms)
-  (reduce #'(lambda (pre-result term)
-              (if pre-result
-                  (term? term)
-                  pre-result))
-          `(() . ,terms))
-  `(,@terms))
+  (if (reduce #'(lambda (pre-result term)
+                  (if pre-result
+                      (term? term)
+                      '()))
+              `(t . ,terms))
+      terms
+      (error (format '() "There are something no term type -- MAKE-TERM-LIST ~A"
+                     terms))))
 (defun empty? (term-list)
   (null term-list))
 (defun first-term (term-list)
@@ -135,69 +140,124 @@
                         multiplicand))
                multiplier)))
 (defun div (divident divisor)
-  ;; to test
+  "divident: term-list -> divisor: term-list ->
+(quotient: term-list . remainder: term-list)"
   (if (empty? divident)
-      `(,(make-term-list) 0)
+      ;; divident is a 0 term in term list, and remainder is 0 term in term list.
+      `(,(make-term-list) . ,(make-term-list))
       (let ((divident-first-term (first-term divident))
             ( divisor-first-term  (first-term divisor)))
         (if (> (order divisor-first-term) (order divident-first-term))
-            `(,(make-term-list) ,divident)
-            (let* ((      quotient*-order (- (order divident) (order divisor)))
-                   (quotient*-coefficient (/ (coefficient divident)
-                                            (coefficient divisor)))
+            `(,(make-term-list) . ,divident)
+            (let* ((      quotient*-order (- (order divident-first-term)
+                                             (order  divisor-first-term)))
+                   (quotient*-coefficient (/ (coefficient divident-first-term)
+                                             (coefficient  divisor-first-term)))
                    (quotient* (make-term-list
                                (make-term quotient*-order
                                           quotient*-coefficient)))
                    (substract (mul divisor quotient*))
                    (remainder* (sub divident substract))
                    (rest-result (div remainder* divisor)))
-              `(,(add quoitent* (car rest-result)) ,(cadr rest-result)))))))
+              `(,(add quotient* (car rest-result)) . ,(cdr rest-result)))))))
+(defun remainder (divident divisor)
+  (cdr (div divident divisor)))
+(defun gcd (a b)
+  (if (empty? b)
+      a
+      (gcd b (remainder a b))))
 
 (export 'make-term-list)
 (export 'add)
 (export 'sub)
 (export 'mul)
+(export 'div)
+(export 'gcd)
 
 
 (defpackage polynomial
   (:use :common-lisp))
 (in-package :polynomial)
 
+(shadow 'common-lisp:variable)
+(shadow 'common-lisp:gcd)
+
 (defun make-polynomial (variable term-list)
   `(polynomial ,variable ,term-list))
-(defun var (polynomial)
+(defun variable (polynomial)
   (cadr polynomial))
 (defun term-list (polynomial)
   (caddr polynomial))
-(defun var= (var1 var2)
-  (eq var1 var2))
+(defun variable= (a b)
+  (eq a b))
 (defun add (augend addend)
-  (if (var= (var augend) (var addend))
-      (make-polynomial (var augend)
+  (if (variable= (variable augend) (variable addend))
+      (make-polynomial (variable augend)
                        (term-list:add (term-list augend) (term-list addend)))
       (error
        (format '() "Polynomials are not in same variable -- POLYNOMIAL:ADD ~A"
                `(,augend ,addend)))))
 (defun sub (subtraction subtract)
-  (if (var= (var subtraction) (var subtract))
-      (make-polynomial (var subtraction)
+  (if (variable= (variable subtraction) (variable subtract))
+      (make-polynomial (variable subtraction)
                        (term-list:sub (term-list subtraction)
                                       (term-list subtract)))
       (error
        (format '() "Polynomials are not in same variable -- POLYNOMIAL:SUB ~A"
                `(,subtraction ,subtract)))))
 (defun mul (multiplicand multiplier)
-  (if (var= (var multiplicand) (var multiplier))
-      (make-polynomial (var multiplicand)
+  (if (variable= (variable multiplicand) (variable multiplier))
+      (make-polynomial (variable multiplicand)
                        (term-list:mul (term-list multiplicand)
                                       (term-list multiplier)))
       (error
        (format '() "Polynomials are not in same variable -- POLYNOMIAL:MUL ~A"
                `(,multiplicand ,multiplier)))))
+(defun div (divident divisor)
+  "divident: polynomial -> divisor: polynomial ->
+(quotient: polynomial . remainder: polynomial)"
+  (if (variable= (variable divident) (variable divisor))
+      (let ((result (div (term-list divident) (term-list divisor))))
+        `(,(make-polynomial (variable divident) (car result))
+          ,(make-polynomial (variable divident) (cdr result))))
+      (error
+       (format '() "Polynomials are not in same variable -- POLYNOMIAL:DIV ~A"
+               `(,divident ,divisor)))))
+(defun gcd (divident divisor)
+  (if (variable= (variable divident) (variable divisor))
+      (make-polynomial (variable divident)
+                       (term-list:gcd (term-list divident) (term-list divisor)))
+      (error
+       (format '() "Polynomials are not in same variable -- POLYNOMIAL:GCD ~A"
+               `(,divident ,divisor)))))
 
 (export 'make-polynomial)
-(export 'var)
+(export 'variable)
 (export 'term-list)
-(export 'var=)
+(export 'variable=)
 (export 'add)
 (export 'mul)
+(export 'div)
+(export 'gcd)
+
+
+(in-package :common-lisp-user)
+
+(defun make-term (order coefficient)
+  (term:make-term order coefficient))
+(defun make-term-list (&rest terms)
+  (apply #'term-list:make-term-list terms))
+(defun make-polynomial (variable term-list)
+  (polynomial:make-polynomial variable term-list))
+
+(defun test ()
+  (let ((p1 (make-polynomial 'x (make-term-list (make-term 2 1)
+                                                (make-term 1 -2)
+                                                (make-term 0 1))))
+        (p2 (make-polynomial 'x (make-term-list (make-term 2 11)
+                                                (make-term 0 7))))
+        (p3 (make-polynomial 'x (make-term-list (make-term 1 13)
+                                                (make-term 0 7)))))
+    (let ((q1 (polynomial:mul p1 p2))
+          (q2 (polynomial:mul p1 p3)))
+      (polynomial:gcd q1 q2))))
