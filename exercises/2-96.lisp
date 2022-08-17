@@ -1,20 +1,22 @@
-;;;; 2-95
+;;;; 2-96
 ;;;; 2-5-3
-;;;; 2022/08/13
+;;;; 2022/08/17
 
-;;; Define p1, P2, and P3 to the polynomials
+;;; a. Implement the procedure `pseudoremainder-terms`, which is just like
+;;; `remainder-terms` except that it multiplies the dividend by the integerizing
+;;; factor described above before calling `div-terms`. Modify `gcd-terms` to use
+;;; `pseudoremainder-terms`, and verify that `greatest-common-divisor` now
+;;; produces an answer with integer coefficients on the example in exercise
+;;; 2.95.
 
-;;; P1:   x^2 - 2x + 1
-;;; P2: 11x^2      + 7
-;;; P3:        13x + 5
+;; answer: gcd-kai
 
-;;; Now define `Q_1` to be the product of `P_1` and `P_2` and `Q_2` to be the
-;;; product of `P_1` and `P_3`, and use `greatest-common-divisor` (exercise
-;;; 2.94) to compute the GCD of `Q_1` and `Q_2`. Note that the answer is not the
-;;; same as `P_1`. This example introduces noninteger operations into the
-;;; computation, causing difficulties with the GCD algorithm. To understand what
-;;; is happening, try tracing `gcd-terms` while computing the GCD or try
-;;; performing the division by hand.
+;;; b. The GCD now has integer coefficients, but they are large than those of
+;;; `P_1`. Modify `gcd-terms` so that it removes common factors from the
+;;; coefficients of the answer by dividing all the coefficients by their
+;;; (integer) greatest common divisor.
+
+;; answer: gcd-kai-ni
 
 (defpackage term
   (:use :common-lisp))
@@ -40,6 +42,9 @@
 (defun mul (multiplicand multiplier)
   (make-term (+ (order multiplicand) (order multiplier))
              (* (coefficient multiplicand) (coefficient multiplier))))
+(defun div (divident divisor)
+  (make-term (- (order divident) (order divisor))
+             (/ (coefficient divident) (coefficient divisor))))
 
 (export 'make-term)
 (export 'term?)
@@ -48,6 +53,7 @@
 (export 'add)
 (export 'negative)
 (export 'mul)
+(export 'div)
 
 
 (defpackage term-list
@@ -126,7 +132,7 @@
       ;; divident is a 0 term in term list, and remainder is 0 term in term list.
       `(,(make-term-list) . ,(make-term-list))
       (let ((divident-first-term (first-term divident))
-            ( divisor-first-term  (first-term divisor)))
+            ( divisor-first-term (first-term  divisor)))
         (if (> (order divisor-first-term) (order divident-first-term))
             `(,(make-term-list) . ,divident)
             (let* ((      quotient*-order (- (order divident-first-term)
@@ -142,10 +148,30 @@
               `(,(add quotient* (car rest-result)) . ,(cdr rest-result)))))))
 (defun remainder (divident divisor)
   (cdr (div divident divisor)))
+(defun psudoremainder (divident divisor)
+  (let* ((o1 (order       (first-term divident)))
+         (o2 (order       (first-term  divisor)))
+         ( c (coefficient (first-term  divisor)))
+         (constant (expt c (+ 1 o1 (- o2)))))
+    (cdr (div (mul divident (make-term-list (make-term 0 constant))) divisor))))
 (defun gcd (a b)
   (if (empty? b)
       a
       (gcd b (remainder a b))))
+(defun gcd-kai (a b)
+  (if (empty? b)
+      a
+      (gcd-kai b (psudoremainder a b))))
+(defun gcd-kai-ni (a b)
+  (let ((psudoremainder (gcd-kai a b)))
+    (let ((gcd (apply #'common-lisp:gcd (map 'list
+                                             #'(lambda (term)
+                                                 (coefficient term))
+                                             psudoremainder))))
+      (map 'list
+           #'(lambda (term)
+               (term:div term (make-term 0 gcd)))
+           psudoremainder))))
 
 (export 'make-term-list)
 (export 'add)
@@ -153,6 +179,8 @@
 (export 'mul)
 (export 'div)
 (export 'gcd)
+(export 'gcd-kai)
+(export 'gcd-kai-ni)
 
 
 (defpackage polynomial
@@ -170,46 +198,45 @@
   (caddr polynomial))
 (defun variable= (a b)
   (eq a b))
+(defmacro with-variable-check (name a b handle-same)
+  `(if (variable= (variable ,a) (variable ,b))
+       ,handle-same
+       (error
+        (format '() "Polynomials are not in same variable -- POLYNOMIAL:~A ~A"
+                ,name `(,,a ,,b)))))
 (defun add (augend addend)
-  (if (variable= (variable augend) (variable addend))
-      (make-polynomial (variable augend)
-                       (term-list:add (term-list augend) (term-list addend)))
-      (error
-       (format '() "Polynomials are not in same variable -- POLYNOMIAL:ADD ~A"
-               `(,augend ,addend)))))
+  (with-variable-check 'add augend addend
+    (make-polynomial (variable augend)
+                     (term-list:add (term-list augend) (term-list addend)))))
 (defun sub (subtraction subtract)
-  (if (variable= (variable subtraction) (variable subtract))
-      (make-polynomial (variable subtraction)
-                       (term-list:sub (term-list subtraction)
-                                      (term-list subtract)))
-      (error
-       (format '() "Polynomials are not in same variable -- POLYNOMIAL:SUB ~A"
-               `(,subtraction ,subtract)))))
+  (with-variable-check 'sub subtraction subtract
+    (make-polynomial (variable subtraction)
+                     (term-list:sub (term-list subtraction)
+                                    (term-list subtract   )))))
 (defun mul (multiplicand multiplier)
-  (if (variable= (variable multiplicand) (variable multiplier))
-      (make-polynomial (variable multiplicand)
-                       (term-list:mul (term-list multiplicand)
-                                      (term-list multiplier)))
-      (error
-       (format '() "Polynomials are not in same variable -- POLYNOMIAL:MUL ~A"
-               `(,multiplicand ,multiplier)))))
+  (with-variable-check 'mul multiplicand multiplier
+    (make-polynomial (variable multiplicand)
+                     (term-list:mul (term-list multiplicand)
+                                    (term-list multiplier)))))
 (defun div (divident divisor)
   "divident: polynomial -> divisor: polynomial ->
 (quotient: polynomial . remainder: polynomial)"
-  (if (variable= (variable divident) (variable divisor))
-      (let ((result (div (term-list divident) (term-list divisor))))
-        `(,(make-polynomial (variable divident) (car result))
-          ,(make-polynomial (variable divident) (cdr result))))
-      (error
-       (format '() "Polynomials are not in same variable -- POLYNOMIAL:DIV ~A"
-               `(,divident ,divisor)))))
+  (with-variable-check 'div divident divisor
+    (let ((result (div (term-list divident) (term-list divisor))))
+      `(,(make-polynomial (variable divident) (car result))
+        ,(make-polynomial (variable divident) (cdr result))))))
 (defun gcd (divident divisor)
-  (if (variable= (variable divident) (variable divisor))
-      (make-polynomial (variable divident)
-                       (term-list:gcd (term-list divident) (term-list divisor)))
-      (error
-       (format '() "Polynomials are not in same variable -- POLYNOMIAL:GCD ~A"
-               `(,divident ,divisor)))))
+  (with-variable-check 'gcd divident divisor
+    (make-polynomial (variable divident)
+                     (term-list:gcd (term-list divident) (term-list divisor)))))
+(defun gcd-kai (divident divisor)
+  (with-variable-check 'gcd-kai divident divisor
+    (make-polynomial (variable divident)
+                     (term-list:gcd-kai (term-list divident) (term-list divisor)))))
+(defun gcd-kai-ni (divident divisor)
+  (with-variable-check 'gcd-kai-ni divident divisor
+    (make-polynomial (variable divident)
+                     (term-list:gcd-kai-ni (term-list divident) (term-list divisor)))))
 
 (export 'make-polynomial)
 (export 'variable)
@@ -219,6 +246,8 @@
 (export 'mul)
 (export 'div)
 (export 'gcd)
+(export 'gcd-kai)
+(export 'gcd-kai-ni)
 
 
 (in-package :common-lisp-user)
@@ -240,4 +269,7 @@
                                                 (make-term 0 7)))))
     (let ((q1 (polynomial:mul p1 p2))
           (q2 (polynomial:mul p1 p3)))
-      (polynomial:gcd q1 q2))))
+      (print `(gcd        ,(polynomial:gcd        q1 q2)))
+      (print `(gcd-kai    ,(polynomial:gcd-kai    q1 q2)))
+      (print `(gcd-kai-ni ,(polynomial:gcd-kai-ni q1 q2)))
+      '())))
