@@ -38,7 +38,7 @@
    stream))
 
 (defun stream-map (f &rest argstreams)
-  (if (null (car argstreams))
+  (if (stream-null? (car argstreams))
       the-empty-stream
       (cons-stream
        (apply f (map 'list #'stream-car argstreams))
