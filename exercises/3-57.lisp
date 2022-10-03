@@ -39,6 +39,6 @@
 (defparameter fibs
   (cons-stream 0 (cons-stream 1 (add-streams (stream-cdr fibs) fibs))))
 
-;;; index    0  0  1  2  3  4          n
-;;; fibs     0  1  1  2  3  5        ...
-;;; + count  0  0  1  3  7 15  2^(n - 1)
+;;; index    0  0  1  2  3  4            n
+;;; fibs     0  1  1  2  3  5          ...
+;;; + count  0  0  1  3  7 15  2^index - 1

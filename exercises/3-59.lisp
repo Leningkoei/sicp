@@ -1,4 +1,5 @@
 ;;;; 3-59
+;;;; 3-5-2
 ;;;; 2022/10/02
 
 ;;; In section 2.5.3 we saw how to implement a polynomial arithmetic system
@@ -68,6 +69,8 @@
       (cons-stream
        (apply f (map 'list #'stream-car streams))
        (apply #'stream-map f (map 'list #'stream-cdr streams)))))
+(defun stream-scale (stream factor)
+  (stream-map #'(lambda (current) (* current factor)) stream))
 (defun stream-enumerate-interval (begin end &key (step 1))
   (if (and (not (equal end 'infinite)) (= begin end))
       the-empty-stream
@@ -101,47 +104,72 @@
   (stream-map
    #'(lambda (current) (/ 1 current))
    (stream-enumerate-interval begin end)))
-(defun integrate-series (exp-series)
+(defun integrate-series (series)
   (stream-map
    #'(lambda (coefficient integer)
        (* coefficient integer))
-   (stream-enumerate-reverse-interval 1 'infinite) exp-series))
+   (stream-enumerate-reverse-interval 1 'infinite) series))
 
 ;;; b
 
 (defparameter exp-series
   (cons-stream 1 (integrate-series exp-series)))
-
-(defparameter cosine-series-coefficients
-  (stream-map
-   #'(lambda (greater less)
-       (- (/ 1 (* greater less))))
-   (stream-enumerate-interval 2 'infinite :step 2)
-   (stream-enumerate-interval 1 'infinite :step 2)))
-(defun integrate-cosine-series (cosine-series)
-  (stream-map
-   #'(lambda (coefficient integer)
-       (* coefficient integer))
-   cosine-series-coefficients cosine-series))
 (defparameter cosine-series
-  (cons-stream 1 (integrate-cosine-series cosine-series)))
-
-(defparameter sine-series-coefficients
-  (stream-map
-   #'(lambda (greater less)
-       (- (/ 1 (* greater less))))
-  (stream-enumerate-interval 3 'infinite :step 2)
-  (stream-enumerate-interval 2 'infinite :step 2)))
-(defun integrate-sine-series (sine-series)
-  (stream-map
-   #'(lambda (coefficient integer)
-       (* coefficient integer))
-   sine-series-coefficients sine-series))
+  (cons-stream 1 (scale-stream (integrate-series sine-series) -1)))
 (defparameter sine-series
-  (cons-stream 1 (integrate-sine-series sine-series)))
+  (cons-stream 0 (integrate-series cosine-series)))
+
+;; (defparameter cosine-series-coefficients
+;;   (stream-map
+;;    #'(lambda (greater less)
+;;        (- (/ 1 (* greater less))))
+;;    (stream-enumerate-interval 2 'infinite :step 2)
+;;    (stream-enumerate-interval 1 'infinite :step 2)))
+;; (defun integrate-cosine-series (cosine-series)
+;;   (stream-map
+;;    #'(lambda (coefficient integer)
+;;        (* coefficient integer))
+;;    cosine-series-coefficients cosine-series))
+;; (defparameter cosine-series
+;;   (cons-stream 1 (integrate-cosine-series cosine-series)))
+;; 
+;; (defparameter sine-series-coefficients
+;;   (stream-map
+;;    #'(lambda (greater less)
+;;        (- (/ 1 (* greater less))))
+;;   (stream-enumerate-interval 3 'infinite :step 2)
+;;   (stream-enumerate-interval 2 'infinite :step 2)))
+;; (defun integrate-sine-series (sine-series)
+;;   (stream-map
+;;    #'(lambda (coefficient integer)
+;;        (* coefficient integer))
+;;    sine-series-coefficients sine-series))
+;; (defparameter sine-series
+;;   (cons-stream 1 (integrate-sine-series sine-series)))
 
 ;;; math problem???
 
 ;; (display-stream sine-series :end 5)
 ;; (display-stream cosine-series :end 5)
 ;; (display-stream exp-series :end 10)
+
+;; (defparameter cosine-series-coefficients
+;;   (stream-enumerate-interval 0 'infinite :step 2))
+;; (defparameter sine-series-coefficients
+;;   (stream-enumerate-interval 1 'infinite :step 2))
+;; 
+;; (defun integrate-cosine-series (cosine-series)
+;;   (stream-map
+;;    #'(lambda (coefficient integer)
+;;        (- (* coefficient integer)))
+;;    cosine-series-coefficients cosine-series))
+;; (defun integrate-sine-series (sine-series)
+;;   (stream-map
+;;    #'(lambda (coefficient integer)
+;;        (* coefficient integer))
+;;    sine-series-coefficients sine-series))
+;; 
+;; (defparameter cosine-series
+;;   (cons-stream 1 (integrate-sine-series sine-series)))
+;; (defparameter sine-series
+;;   (cons-stream 0 (integrate-cosine-series cosine-series)))
