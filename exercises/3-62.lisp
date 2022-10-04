@@ -30,6 +30,26 @@
       (cons-stream
        (apply f (map 'list #'stream-car streams))
        (apply #'stream-map f (map 'list #'stream-cdr streams)))))
+(defun stream-for-each (f stream &key (begin 0) (end 'infinite))
+  (if (or (stream-null? stream)
+          (equal end 0))
+      'done
+      (progn
+        (when (and (= begin 0)
+                   (or (equal end 'infinite) (> end 0)))
+          (apply f (stream-car stream) nil))
+        (stream-for-each
+         f (stream-cdr stream)
+         :begin (if (= begin 0) 0 (- begin 1))
+         :end (if (equal end 'infinite)
+                  'infinite
+                  (- end 1))))))
+(defun print-line (line)
+  (format t "~A~%" line))
+(defun display-stream (stream &key (begin 0) (end 'infinite))
+  (stream-for-each
+   #'(lambda (current) (print-line current))
+   stream :begin begin :end end))
 (defun scale-stream (stream factor)
   (stream-map #'(lambda (current) (* current factor)) stream))
 (defun add-stream (stream1 stream2)
@@ -39,7 +59,9 @@
    (* (stream-car stream1) (stream-car stream2))
    (add-stream
     (scale-stream (stream-cdr stream1) (stream-car stream2))
-    (mul-series stream1 (stream-cdr stream2)))))
+    (mul-stream stream1 (stream-cdr stream2)))))
+(defun square-stream (stream)
+  (mul-stream stream stream))
 (defun invert-unit-series (S)
   (flet
       ((X (X)
@@ -52,3 +74,19 @@
   (if (= (stream-car stream2) 0)
       (error (format t "There exists 0 in stream2!!!"))
       (mul-stream stream1 (invert-unit-series stream2))))
+
+(defparameter ones
+  (cons-stream 1 ones))
+(defparameter integers
+  (cons-stream 1 (add-stream ones integers)))
+(defun integrate-series (series)
+  (stream-map
+   #'(lambda (coefficient integer)
+       (/ integer coefficient))
+   integers series))
+(defparameter cosine-series
+  (cons-stream 1 (scale-stream (integrate-series sine-series) -1)))
+(defparameter sine-series
+  (cons-stream 0 (integrate-series cosine-series)))
+(defparameter tangent-series
+  (cons-stream 1 (square-stream (integrate-series tangent-series))))
