@@ -11,6 +11,10 @@
   (null stream))
 (defparameter the-empty-stream nil)
 
+(defun stream-ref (stream index)
+  (if (= index 0)
+      (stream-car stream)
+      (stream-ref (stream-cdr stream) (- index 1))))
 (defun stream-map (f &rest streams)
   (if (reduce
        #'(lambda (accumulator current-stream)
@@ -71,3 +75,24 @@
   (cons-stream (/ 1.0 n) (stream-map #'- (pi-summands (+ n 2)))))
 (defparameter pi-stream
   (scale-stream (partial-sums (pi-summands 1)) 4))
+
+(defun square (number)
+  (* number number))
+(defun euler-transform (stream)
+  (let ((s0 (stream-ref stream 0))
+        (s1 (stream-ref stream 1))
+        (s2 (stream-ref stream 2)))
+    (cons-stream
+     (- s2
+        (/ (square (- s2 s1))
+           (+ s0 (* -2 s1) s2)))
+     (euler-transform (stream-cdr stream)))))
+
+(defun make-tableau (transform stream)
+  (cons-stream
+   stream
+   (make-tableau transform (apply transform stream nil))))
+(defun accelerate-sequence (transform stream)
+  (stream-map #'stream-car (make-tableau transform stream)))
+;; (display-stream (accelerate-sequence #'euler-transform pi-stream))
+;; error: 0.0 / 0.0
