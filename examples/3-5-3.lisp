@@ -26,8 +26,16 @@
       (cons-stream
        (apply f (map 'list #'stream-car streams))
        (apply #'stream-map f (map 'list #'stream-cdr streams)))))
-(defun scale-stream (stream factor)
-  (stream-map #'(lambda (current) (* factor current)) stream))
+(defun stream-+ (stream1 stream2)
+  (stream-map #'+ stream1 stream2))
+(defun filter-stream (test stream)
+  (if (stream-null? stream)
+      the-empty-stream
+      (if (apply test (stream-car stream) nil)
+          (cons-stream
+           (stream-car stream)
+           (filter-stream test (stream-cdr stream)))
+          (filter-stream test (stream-cdr stream)))))
 (defun stream-for-each (f stream &key (begin 0) (end 'infinite))
   (if (or (stream-null? stream)
           (equal end 0))
@@ -47,6 +55,12 @@
   (stream-for-each
    #'(lambda (current) (print-line current))
    stream :begin begin :end end))
+(defun scale-stream (stream factor)
+  (stream-map #'(lambda (current) (* factor current)) stream))
+(defparameter ones
+  (cons-stream 1 ones))
+(defparameter integers
+  (cons-stream 1 (stream-+ integers ones)))
 
 (defun average (a b)
   (/ (+ a b) 2))
@@ -96,3 +110,53 @@
   (stream-map #'stream-car (make-tableau transform stream)))
 ;; (display-stream (accelerate-sequence #'euler-transform pi-stream))
 ;; error: 0.0 / 0.0
+
+;;; Infinite streams of pairs
+;;; 2022/10/15
+
+(defun prime? (n)
+  (labels
+      ((divides? (a b)
+         (= (mod b a) 0))
+       (square (number)
+         (* number number))
+       (find-divisor (n test-divisor)
+         (cond
+           ((> (square test-divisor) n) n)
+           ((divides? test-divisor n) test-divisor)
+           (t (find-divisor n (+ test-divisor 1)))))
+       (smallest-divisor (n)
+         (find-divisor n 2)))
+    (= n (smallest-divisor n))))
+
+(defun stream-append (stream1 stream2)
+  "It is unsuitable when stream1 is a infinite stream!!!"
+  (if (stream-null? stream1)
+      stream2
+      (cons-stream
+       (stream-car stream1)
+       (stream-append (stream-cdr stream1) stream2))))
+(defun interleave (stream1 stream2)
+  (if (stream-null? stream1)
+      stream2
+      (cons-stream
+       (stream-car stream1)
+       (interleave stream2 (stream-cdr stream1)))))
+;;; shittyt
+(defun pairs (r s)
+  (cons-stream
+   (list (stream-car r) (stream-car s))
+   (interleave
+    (stream-map
+     #'(lambda (x)
+         (list (stream-car r) x))
+     (stream-cdr s))
+    (pairs (stream-cdr r) (stream-cdr s)))))
+(defparameter int-pairs
+  (pairs integers integers))
+
+(defparameter target
+  (filter-stream
+   #'(lambda (pair)
+       (prime? (+ (car pair) (cadr pair))))
+   int-pairs))
