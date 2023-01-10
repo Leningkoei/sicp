@@ -65,3 +65,73 @@
 (defparameter ones (cons-stream 1 ones))
 (defparameter one-plus (cons-stream 1 (stream-+ one-plus ones)))
 (defparameter integers (cons-stream 0 one-plus))
+
+(defun interleave (stream1 stream2)
+  (if (stream-null? stream1)
+      stream2
+      (cons-stream
+       (stream-car stream1)
+       (interleave stream2 (stream-cdr stream1)))))
+(defun pairs (stream1 stream2)
+  (cons-stream
+   (list (stream-car stream1) (stream-car stream2))
+   (interleave
+    (stream-map
+     #'(lambda (x)
+         (list (stream-car stream1) x))
+     (stream-cdr stream2))
+    (pairs (stream-cdr stream1) (stream-cdr stream2)))))
+
+(defun merge-weighted (stream1 stream2 &key (weight #'identity))
+  (cond
+    ((stream-null? stream1) stream2)
+    ((stream-null? stream2) stream1)
+    ('t
+     (let ((weight1 (apply weight (stream-car stream1) nil))
+           (weight2 (apply weight (stream-car stream2) nil)))
+       (cond
+         ((< weight1 weight2)
+          (cons-stream
+           (stream-car stream1)
+           (merge-weighted (stream-cdr stream1) stream2 :weight weight)))
+         ((> weight1 weight2)
+          (cons-stream
+           (stream-car stream2)
+           (merge-weighted stream1 (stream-cdr stream2) :weight weight)))
+         ('t
+          (cons-stream
+           (stream-car stream1)
+           (cons-stream
+            (stream-car stream2)
+            (merge-weighted
+             (stream-cdr stream1)
+             (stream-cdr stream2)
+             :weight weight)))))))))
+(defun weighted-pairs (stream1 stream2 weight)
+  "`weight` should be a procedure which receives a pair and give a number"
+  (cons-stream
+   (list (stream-car stream1) (stream-car stream2))
+   (merge-weighted
+    (;; generate a pair stream: (stream1-1 stream2-1+)
+     stream-map
+     #'(lambda (x)
+         (list (stream-car stream1) x))
+     (stream-cdr stream2))
+    (weighted-pairs (stream-cdr stream1) (stream-cdr stream2) weight)
+    :weight weight)))
+
+(defun weight (pair)
+  (+ (expt (car pair) 3) (expt (cadr pair) 3)))
+(defun iterator (pre-weight stream)
+  (if (stream-null? stream)
+      the-empty-stream
+      (let ((weight (weight (stream-car stream))))
+        (if (= weight pre-weight)
+            (cons-stream weight (iterator weight (stream-cdr stream)))
+            (iterator weight (stream-cdr stream))))))
+(defun test ()
+  (display-stream
+   (iterator -1 (weighted-pairs integers integers #'weight))
+   :end 16))
+
+;;; OK, for pre 16, there are no combo 3, because there are no same number in my result.
